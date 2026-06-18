@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LeetCode Solver</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Courier New', monospace;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+    padding: 32px;
+  }
+  h1 { font-size: 20px; font-weight: bold; color: #f0883e; margin-bottom: 24px; letter-spacing: 1px; }
+  label { display: block; font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+
+  .recommended-badge {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #0d1117;
+    background: linear-gradient(90deg, #f0883e, #ffa05c);
+    border-radius: 999px;
+    letter-spacing: 1px;
+    box-shadow: 0 0 10px rgba(240,136,62,0.6);
+    transform: translateY(-1px);
+  }
+
+  textarea, input, select {
+    width: 100%;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #e6edf3;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea { resize: vertical; }
+  textarea:focus, input:focus, select:focus { border-color: #f0883e; }
+  select option { background: #161b22; }
+
+  .section { margin-bottom: 16px; }
+  .row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+
+  button {
+    background: #f0883e;
+    color: #0d1117;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    transition: background 0.2s, opacity 0.2s;
+  }
+  button:hover { background: #ffa05c; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-sm {
+    background: transparent;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-sm:hover { color: #e6edf3; border-color: #8b949e; }
+
+  #output-box {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 14px;
+    font-size: 13px;
+    white-space: pre-wrap;
+    min-height: 60px;
+    color: #79c0ff;
+    line-height: 1.6;
+    cursor: text;
+    user-select: all;
+  }
+
+  #copy-btn {
+    background: #238636;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    visibility: hidden;
+    transition: background 0.2s;
+  }
+  #copy-btn:hover { background: #2ea043; }
+
+  #status { font-size: 12px; color: #8b949e; }
+  .divider { border: none; border-top: 1px solid #21262d; margin: 20px 0; }
+
+  .key-status { font-size: 11px; margin-top: 4px; min-height: 14px; }
+  .key-ok { color: #3fb950; }
+  .key-missing { color: #8b949e; }
+
+  #modal-overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+
+  #modal {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 28px 32px;
+    width: 380px;
+    max-width: 90vw;
+  }
+
+  #modal h2 { font-size: 16px; color: #f0883e; margin-bottom: 20px; letter-spacing: 1px; }
+
+  .modal-section { margin-bottom: 14px; }
+  .modal-section label { margin-bottom: 5px; }
+
+  .modal-row { display: flex; gap: 8px; align-items: center; }
+  .modal-row input { flex: 1; }
+
+  #modal-done { margin-top: 20px; width: 100%; padding: 10px; font-size: 13px; }
+</style>
+</head>
+
+<body>
+
+<div id="modal-overlay">
+  <div id="modal">
+    <h2>// API KEYS</h2>
+
+    <div class="modal-section">
+      <label>
+        Claude (Anthropic)
+        <span class="recommended-badge">BEST</span>
+      </label>
+      <div class="modal-row">
+        <input type="password" id="key-claude" placeholder="sk-ant-..." />
+        <button class="btn-sm" onclick="saveKey('claude')">SAVE</button>
+      </div>
+      <div class="key-status" id="status-claude"></div>
+    </div>
+
+    <div class="modal-section">
+      <label>OpenAI</label>
+      <div class="modal-row">
+        <input type="password" id="key-openai" placeholder="sk-..." />
+        <button class="btn-sm" onclick="saveKey('openai')">SAVE</button>
+      </div>
+      <div class="key-status" id="status-openai"></div>
+    </div>
+
+    <div class="modal-section">
+      <label>DeepSeek</label>
+      <div class="modal-row">
+        <input type="password" id="key-deepseek" placeholder="sk-..." />
+        <button class="btn-sm" onclick="saveKey('deepseek')">SAVE</button>
+      </div>
+      <div class="key-status" id="status-deepseek"></div>
+    </div>
+
+    <button id="modal-done" onclick="closeModal()">DONE</button>
+  </div>
+</div>
+
+<h1>// LEETCODE SOLVER</h1>
+
+<p style="font-size:13px; margin-bottom:4px; letter-spacing:1px;">
+  <span style="color:#8b949e;">built by</span>
+  <a href="https://github.com/andrewplatania" style="color:#58a6ff; text-decoration:underline;">
+    Andrew Platania
+  </a>
+</p>
+
+<hr style="border:none; border-top:1px solid #21262d; margin-bottom:20px;">
+
+<div class="section">
+  <label>Provider</label>
+  <div class="row" style="margin-bottom:0;">
+    <select id="provider" style="width:auto; flex:1;" onchange="updateProviderStatus()">
+      <option value="claude">Claude (Anthropic)</option>
+      <option value="openai">OpenAI</option>
+      <option value="deepseek">DeepSeek</option>
+    </select>
+    <button class="btn-sm" onclick="openModal()">EDIT KEYS</button>
+  </div>
+  <div class="key-status" id="provider-status" style="margin-top:6px;"></div>
+</div>
+
+<div class="section">
+  <label>Problem Description</label>
+  <textarea id="problem" rows="4" placeholder="Paste the problem description here..."></textarea>
+</div>
+
+<div class="section">
+  <label>Starter Code</label>
+  <textarea id="code" rows="4" placeholder="Paste the starter code here..."></textarea>
+</div>
+
+<div class="row">
+  <button id="solve-btn" onclick="solve()">SOLVE</button>
+  <span id="status"></span>
+</div>
+
+<hr class="divider">
+
+<label>Solution</label>
+<button id="copy-btn" onclick="copyOutput()">COPY CODE</button>
+<div id="output-box" onclick="selectOutput()">Output will appear here...</div>
+
+<script>
+const PROVIDERS = {
+  claude:   { storageKey: 'lc_key_claude' },
+  openai:   { storageKey: 'lc_key_openai' },
+  deepseek: { storageKey: 'lc_key_deepseek' }
+};
+
+function stripFences(str) {
+  return str.split('\n').filter(line => !/^```/.test(line.trim())).join('\n').trim();
+}
+
+function loadKeys() {
+  for (var id in PROVIDERS) {
+    var saved = localStorage.getItem(PROVIDERS[id].storageKey);
+    var input = document.getElementById('key-' + id);
+    var status = document.getElementById('status-' + id);
+    if (saved) {
+      input.value = saved;
+      status.textContent = 'Key saved';
+      status.className = 'key-status key-ok';
+    } else {
+      status.textContent = 'No key saved';
+      status.className = 'key-status key-missing';
+    }
+  }
+  updateProviderStatus();
+}
+
+function saveKey(id) {
+  var val = document.getElementById('key-' + id).value.trim();
+  var status = document.getElementById('status-' + id);
+  if (val) {
+    localStorage.setItem(PROVIDERS[id].storageKey, val);
+    status.textContent = 'Key saved';
+    status.className = 'key-status key-ok';
+  } else {
+    localStorage.removeItem(PROVIDERS[id].storageKey);
+    status.textContent = 'No key saved';
+    status.className = 'key-status key-missing';
+  }
+  updateProviderStatus();
+}
+
+function updateProviderStatus() {
+  var id = document.getElementById('provider').value;
+  var el = document.getElementById('provider-status');
+  var key = localStorage.getItem(PROVIDERS[id].storageKey);
+  el.textContent = key ? 'Key loaded' : 'No key saved - click EDIT KEYS';
+  el.className = 'key-status ' + (key ? 'key-ok' : 'key-missing');
+}
+
+function openModal() {
+  document.getElementById('modal-overlay').style.display = 'flex';
+  loadKeys();
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+  updateProviderStatus();
+}
+
+async function solve() {
+  var provider = document.getElementById('provider').value;
+  var key = localStorage.getItem(PROVIDERS[provider].storageKey);
+  var problem = document.getElementById('problem').value.trim();
+  var code = document.getElementById('code').value.trim();
+  var status = document.getElementById('status');
+  var btn = document.getElementById('solve-btn');
+  var output = document.getElementById('output-box');
+  var copyBtn = document.getElementById('copy-btn');
+
+  if (!key) { status.textContent = 'No API key saved for this provider.'; return; }
+  if (!problem) { status.textContent = 'Paste the problem description.'; return; }
+  if (!code) {
+  status.textContent = 'Paste the starter code.';
+  btn.disabled = false;
+  return;
+}
+
+  btn.disabled = true;
+  status.textContent = 'Solving...';
+  output.textContent = '';
+  copyBtn.style.visibility = 'hidden';
+
+  var prompt =
+    'Here is a LeetCode problem:\n\n' +
+    problem +
+    '\n\nHere is the starter code:\n\n' +
+    code +
+    '\n\nFill in the solution. Return ONLY the raw code.';
+
+  try {
+    var text = '';
+
+    if (provider === 'claude') {
+      var res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      var data = await res.json();
+      text = data.content?.[0]?.text || '';
+
+    } else if (provider === 'openai') {
+      var res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + key
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      var data = await res.json();
+      text = data.choices?.[0]?.message?.content || '';
+
+    } else if (provider === 'deepseek') {
+      var res = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + key
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      var data = await res.json();
+      text = data.choices?.[0]?.message?.content || '';
+    }
+
+    text = stripFences(text);
+    output.textContent = text;
+    copyBtn.style.visibility = 'visible';
+    status.textContent = 'Done!';
+    document.getElementById('problem').value = '';
+    document.getElementById('code').value = '';
+
+  } catch (err) {
+    status.textContent = 'Error: ' + err.message;
+  }
+
+  btn.disabled = false;
+}
+
+function selectOutput() {
+  var range = document.createRange();
+  range.selectNodeContents(document.getElementById('output-box'));
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+}
+
+function copyOutput() {
+  var text = document.getElementById('output-box').textContent;
+  navigator.clipboard.writeText(text).then(function () {
+    var btn = document.getElementById('copy-btn');
+    btn.textContent = 'COPIED!';
+    setTimeout(() => btn.textContent = 'COPY CODE', 1500);
+  });
+}
+
+loadKeys();
+</script>
+
+</body>
+</html>
